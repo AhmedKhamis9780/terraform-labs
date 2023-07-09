@@ -25,15 +25,31 @@ resource "aws_security_group" "aws-sg" {
   } 
 }
 # Create EC2 Instance
-resource "aws_instance" "vm-server" {
-  ami                    = "ami-0989fb15ce71ba39e"
-  instance_type          = "t3.micro"
-  subnet_id              = aws_subnet.pub.id
+resource "aws_instance" "public-server" {
+  ami                    = var.AMIS
+  instance_type          = var.INSTANCE_Type
+  subnet_id              =  local.public_subnet
   vpc_security_group_ids = [aws_security_group.aws-sg.id]
   source_dest_check      = false
   associate_public_ip_address = true
+  key_name = var.key
   
-  user_data = file("config.sh")
+  user_data = file("nginx-config.sh")
+  
+  
+  tags = {
+    Name = "nginx"
+  }
+}
+resource "aws_instance" "private-server" {
+  ami                    = var.AMIS
+  instance_type          = var.INSTANCE_Type
+  subnet_id              = local.private_subnet
+  vpc_security_group_ids = [aws_security_group.aws-sg.id]
+  source_dest_check      = false
+  associate_public_ip_address = false
+  
+  user_data = file("apache-config.sh")
   
   
   tags = {
